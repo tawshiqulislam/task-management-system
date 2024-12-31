@@ -27,5 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('tasks', TaskController::class);
+    Route::get('tasks/single/{id}', [TaskController::class, 'singe_task']); // Fetch single task
 });
 

@@ -91,4 +91,16 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Task deleted successfully'], 200);
     }
+
+    public function singe_task($id)
+    {
+        $task = Task::find($id);
+    
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+    
+        return new TaskResource($task);
+    }
+    
 }
