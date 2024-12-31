@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
@@ -13,9 +14,22 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::orderBy('due_date', 'asc')->get();
+        $query = Task::query();
+
+        // Filter tasks by status
+        if ($request->has('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        // Sort tasks by due_date (default to ascending order)
+        $sortOrder = $request->input('sort', 'asc');
+        $query->orderBy('due_date', $sortOrder);
+
+        // Get all tasks without pagination
+        $tasks = $query->get();
+
         return TaskResource::collection($tasks);
     }
 
@@ -40,6 +54,11 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
+        // Ensure the task belongs to the authenticated user
+        if ($task->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         return new TaskResource($task);
     }
 
@@ -48,6 +67,7 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $request, Task $task)
     {
+        // Ensure the task belongs to the authenticated user
         if ($task->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -62,6 +82,7 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        // Ensure the task belongs to the authenticated user
         if ($task->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
